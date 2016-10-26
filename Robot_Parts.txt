@@ -1,0 +1,61 @@
+_______________________________________
+
+********  Head Display ************
+_______________________________________
+
+Name: asf
+Part #: 123
+Type: Head
+Weight: 123
+Cost: 123
+Description: jkl
+_______________________________________
+
+********  Arm Display ************
+_______________________________________
+
+Name: jkl
+Part #: 123
+Type: Arm
+Weight: 123
+Cost: 123
+Description: jkl
+Power Consumed: 23
+_______________________________________
+
+********  Torso Display ************
+_______________________________________
+
+Name: head
+Part #: 123
+Type: Torso
+Weight: 123
+Cost: 123
+Description: 123
+Battery Compartments: 2
+_______________________________________
+
+********  Locomotor Display ************
+_______________________________________
+
+Name: jkl
+Part #: 123
+Type: Locomotor
+Weight: 123
+Cost: 123
+Description: 123
+Power Consumed: 23
+Maximum Speed: 1
+_______________________________________
+
+********  Battery Display ************
+_______________________________________
+
+Name: 123
+Part #: 123
+Type: Battery
+Weight: 123
+Cost: 123
+Description: 123
+Energy Contained: 1.6
+
