@@ -9,7 +9,7 @@ debug: executable
 rebuild: clean executable
 executable: shop.o robotParts.o view.o torso.o robotModels.o orders.o locomotor.o head.o customer.o createRobotParts.o controller.o battery.o arm.o salesAssociate.o
 	$(CXX) $(CXXFLAGS) shop.o robotParts.o view.o torso.o robotModels.o orders.o locomotor.o head.o customer.o createRobotParts.o controller.o battery.o arm.o salesAssociate.o
-shop.o: shop.cpp std_lib_facilities.h view.h robotparts.h createRobotParts.h controller.h robotModels.h
+shop.o: shop.cpp std_lib_facilities.h view.h robotParts.h createRobotParts.h controller.h robotModels.h
 	$(CXX) $(CXXFLAGS) -w -c shop.cpp
 torso.o: torso.cpp torso.h std_lib_facilities.h
 	$(CXX) $(CXXFLAGS) -w -c torso.cpp
