@@ -26,48 +26,79 @@
 #include <FL/fl_ask.H>
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Text_Display.H>
+#include <FL/Fl_Input.H>
+#include <FL/Fl_Int_Input.H>
+#include <FL/Fl_Float_Input.H>
+#include <FL/Fl_Color_Chooser.H>
+#include <fstream>
 #include <cstring>
 #include <string>
 #include <iostream>
 using namespace std;
 
+/*-------------------GLOBAL VARIABLES--------------------*/
+
+// Used by Main and MakeParts for user input
+int gloArgc;
+char **gloArgv;
+// Used by MakeParts for txt input boxes
+Fl_Input* prtName;
+Fl_Int_Input* prtNumb;
+Fl_Input* prtType;
+Fl_Float_Input* weight;
+Fl_Float_Input* cost;
+Fl_Input* descr;
 
 /*----------------------MakeWin CLASS--------------------*/
-class MakeWin{
+
+// Generic class to make new windows
+class MakeWin
+{
 public:
+    // Constructor w/no prams, for derived classes
     MakeWin(){};
-    MakeWin(int x,int y,char* L): X(x),Y(y),lab(L){}
-    void winProps(){
-        win = new Fl_Window(X, Y, lab);
-        win->color( FL_WHITE );
+    // Constructor w/method initialization for window
+    MakeWin(int x,int y,const char* L): X(x),Y(y),lab(L){}
+    void winProps()
+    {
+        win = new Fl_Window(X, Y, lab);     //make window
+        win->color( FL_WHITE );             //background color white
     }
-    void showWin(){win->end();win->show();}
+    void showWin()
+    {
+        win->end();     //no more additions
+        win->show();    //show window
+    }
 private:
     int X, Y;
-    char* lab;
+    const char* lab;
     Fl_Window *win;
 };
+
 /*----------------------MakeBox CLASS--------------------*/
-class MakeBox{
+// Main window display box thats on top of buttons
+class MakeBox
+{
 public:
     MakeBox(){};
-    MakeBox(int s, int x, int y, int w, int h, char* L):S(s),X(x),Y(y),W(w),H(h),lab(L){}
+    MakeBox(int s, int x, int y, int w, int h, const char* L):S(s),X(x),Y(y),W(w),H(h),lab(L){}
     void boxProps(){
         Fl_Box *box = new Fl_Box(X,Y,W,H,lab);
         box->box(FL_RSHADOW_BOX);
-        box->labelfont(FL_BOLD+FL_ITALIC);
+        box->align(FL_ALIGN_WRAP);
+        box->labelfont(FL_BOLD);
         box->labelsize(S);
         box->labeltype(FL_SHADOW_LABEL);
     }
 private:
     int S, X, Y, W, H;
-    char* lab;
+    const char* lab;
 };
 /*---------------------DisplayBox CLASS------------------*/
 class DisplayBox{
 public:
     DisplayBox(){};
-    DisplayBox(int wx, int wy, int s, int x, int y, int w, int h, char* L):wX(wx),wY(wy),S(s),X(x),Y(y),W(w),H(h),lab(L){}
+    DisplayBox(int wx, int wy, int s, int x, int y, int w, int h, const char* L):wX(wx),wY(wy),S(s),X(x),Y(y),W(w),H(h),lab(L){}
     void dispBoxProps(){
         Fl_Window *win = new Fl_Window(wX,wY);
         Fl_Box *box = new Fl_Box(X,Y,W,H,lab);
@@ -82,13 +113,69 @@ public:
     }
 private:
     int wX, wY, S, X, Y, W, H;
-    char* lab;
+    const char* lab;
+};
+/*-----------------------------------------------------MakeParts CLASS----------------------------------------------------*/
+class MakeParts
+{
+private:
+    // The widgets
+    
+public:
+    MakeParts(){}
+    MakeParts(int x,int y,int w,int h)
+    {
+        // Setup the colours
+        Fl::args(gloArgc, gloArgv);
+        Fl::get_system_colors();
+        // Create the window
+        Fl_Window *window = new Fl_Window(400, 350);
+        int X = x, Y = y, W = w, H = h;
+        // Create text boxes
+        prtName = new Fl_Input(x, y, w, h, "Part Name:");
+        prtName->tooltip("Name must be < 35 chars");
+        y += 35;
+        prtNumb = new Fl_Int_Input(x,y,w,h,"Part Number:");
+        prtNumb->tooltip("Number must be < 35 chars");
+        y+= 35;
+        prtType = new Fl_Input(x, y, w, h, "Part Type:");
+        prtType->tooltip("head,arms,legs,torso,loco");
+        y+= 35;
+        weight = new Fl_Float_Input(x,y,w,h,"Part Weight(lbs):");
+        weight->tooltip("Enter number only");
+        y+= 35;
+        cost = new Fl_Float_Input(x,y,w,h,"Part Cost$ :");
+        cost->tooltip("Enter value only, no $ ");
+        y+= 35;
+        descr = new Fl_Input(x, y, w, h, "Part Description:");
+        descr->tooltip("Description must be < 90 chars");
+        y += 35;
+        Fl_Button* sub = new Fl_Button(x,y,200,h,"Submit");
+        
+        sub->callback(statCB);
+        window->end();
+        window->show(gloArgc, gloArgv);
+    }
+    void inputCB(Fl_Widget* w, void* p)
+    {
+        cout << "Part name value is: " << prtName->value() << endl;
+        cout << "Part number value is: " << prtNumb->value() << endl;
+        cout << "Part type value is: " << prtType->value() << endl;
+        cout << "Part weight value is: " << weight->value() << endl;
+        cout << "Part cost value is: " << cost->value() << endl;
+        cout << "Part description value is: " << descr->value() << endl;
+    }
+    static void statCB(Fl_Widget* w, void* p)
+    {
+        MakeParts *o = (MakeParts*)p;
+        o->inputCB(w,p);
+    }
 };
 /*----------------------------------------------------MakeButtons CLASS---------------------------------------------------*/
-class MakeButtons : DisplayBox{
+class MakeButtons : DisplayBox, MakeParts{
  public:
 //--------------------------Constructor--------------------
-    MakeButtons(int x, int y, int w, int h, char* L):X(x),Y(y),W(w),H(h),lab(L){}
+    MakeButtons(int x,int y,int w,int h,const char* L):X(x),Y(y),W(w),H(h),lab(L){}
 //----------------------Create Button----------------------
     void butProps(int k)
     {
@@ -110,6 +197,8 @@ class MakeButtons : DisplayBox{
              case 5:
                  but->callback( docCB );
                  break;
+             case 6:
+                 but->callback( catCB );
          }
      }
 //---------------------PM Handle Method--------------------
@@ -121,7 +210,9 @@ class MakeButtons : DisplayBox{
             case 1:     // if case 1 button was pushed
             {
                 if(fl_choice("Are you the PM?", NULL, fl_no, fl_yes) == 2)      // display dialog box asking usr question
-                    cout << "code to create robot parts" << endl;           // if yes, write code to create parts
+                {
+                    MakeParts prts(150,10,200,30);
+                }
                 else
                 {       // if no, instance displaybox class and display error msg to usr
                     DisplayBox box(640, 120, 36, 0, 0, 640, 120, "Only the PM can create parts");
@@ -253,17 +344,6 @@ class MakeButtons : DisplayBox{
             case 2:
             {
                 if(fl_choice("Are you a RRS staff memeber?", NULL, fl_no, fl_yes) == 2)
-                    cout << "code to view all orders" << endl;
-                else
-                {
-                    DisplayBox box(640, 120, 36, 0, 0, 640, 120, "Only RRS staff can view all orders");
-                    box.dispBoxProps();
-                }
-                break;
-            }
-            case 3:
-            {
-                if(fl_choice("Are you a RRS staff memeber?", NULL, fl_no, fl_yes) == 2)
                 {
                     cout << "code to ask for SA name & print SA report" << endl;
                 }
@@ -280,9 +360,8 @@ class MakeButtons : DisplayBox{
     static void saCB(Fl_Widget *w, void*)
     {
         Fl_Menu_Item rclick_menu[] = {
-            { "Create robot order",  0, saHandleMenu, (void*)1 },
-            { "View all orders",  0, saHandleMenu, (void*)2 },
-            { "View associate sales log",  0, saHandleMenu, (void*)3 },
+            {"Create robot order",0,saHandleMenu,(void*)1},
+            {"View your sales log",0,saHandleMenu,(void*)2},
             { 0 }
         };
         const Fl_Menu_Item *m = rclick_menu->popup( Fl::event_x(), Fl::event_y(), 0, 0, 0 );
@@ -297,23 +376,19 @@ class MakeButtons : DisplayBox{
         switch( (intptr_t)v )
         {
             case 1:
-                cout << "Code to view robot models" << endl;
-                break;
-            case 2:
                 cout << "Code to view customer orders" << endl;
                 break;
-            case 3:
+            case 2:
                 cout << "Code to view customer bill" << endl;
                 break;
         }
     }
-//------------------------SA Callback----------------------
+//------------------------BC Callback----------------------
     static void bcCB(Fl_Widget *w, void*)
     {
         Fl_Menu_Item rclick_menu[] = {
-            { "View catologue",  0, bcHandleMenu, (void*)1 },
-            { "View orders",  0, bcHandleMenu, (void*)2 },
-            { "view bill",  0, bcHandleMenu, (void*)3 },
+            { "View orders",  0, bcHandleMenu, (void*)1 },
+            { "view bill",  0, bcHandleMenu, (void*)2 },
             { 0 }
         };
         const Fl_Menu_Item *m = rclick_menu->popup( Fl::event_x(), Fl::event_y(), 0, 0, 0 );
@@ -333,22 +408,45 @@ class MakeButtons : DisplayBox{
         //txt to display in window
         buff->text("This program facilitates the following processes for Robbie Robot Shop: creating robot parts,\ncreating robot models, displaying the parts and models, creating orders, viewing order history\nand customer bill, and generating sales reports. The undo and save featres can be found under\nthe 'file' menubar tab.");
     }
+    //------------------------cat Callback----------------------
+    static void catCB(Fl_Widget *w, void*)
+    {
+        Fl_Window *win = new Fl_Window(650, 480);       // create new win for display
+        Fl_Text_Buffer *buff = new Fl_Text_Buffer();    // make a buffer to display text
+        Fl_Text_Display *disp = new Fl_Text_Display(20, 20, 650-40, 480-40, "Robot Model Catalogue");   // display box
+        disp->buffer(buff);     // set buffer
+        win->resizable(*disp);  // make window resizable
+        win->show();            //show window
+        //txt to display in window
+        buff->text("This is where the robot catalogue will be printed.");
+    }
  private:       //button class private vars
  int X, Y, W, H, key;
- char* lab;
+ const char* lab;
  };
-
 /*-------------------------------------------------------SHOP CLASS-------------------------------------------------------*/
-int main()
+int main(int argc,char **argv)
 {
+    gloArgc = argc;
+    gloArgv = argv;
+    const char *lab1 = "Robbie Robot Shop";
+    const char *lab2 = "Welcome to the Robbie Robot Shop!\n\nPlease select a user type";
+    const char *lab3 = "Project Manager Menu";
+    const char *lab4 = "Shop Manager Menu";
+    const char *lab5 = "Sales Associate Menu";
+    const char *lab6 = "Customer Menu";
+    const char *lab7 = "View Documentation";
+    const char *lab8 = "View Robot Catalogue";
+    
     // instance objects to make widgets w/given params
-    MakeWin mainWin(1400,600,"Robbie Robot Shop");
-    MakeBox mainBox(36,450,100,500,100,"Welcome!\nPlease select user type");
-    MakeButtons mainBut1(475,300,140,50,"PM Menu");
-    MakeButtons mainBut2(615,300,140,50,"PB Menu");
-    MakeButtons mainBut3(755,300,140,50,"SA Menu");
-    MakeButtons mainBut4(475,350,140,50,"BC Menu");
-    MakeButtons mainBut5(615,350,140,50,"View Documentation");
+    MakeWin mainWin(1400,600,lab1);
+    MakeBox mainBox(36,450,100,500,200,lab2);
+    MakeButtons mainBut1(470,350,155,50,lab3);
+    MakeButtons mainBut2(625,350,155,50,lab4);
+    MakeButtons mainBut3(780,350,155,50,lab5);
+    MakeButtons mainBut4(470,400,155,50,lab6);
+    MakeButtons mainBut5(625,400,155,50,lab7);
+    MakeButtons mainBut6(780,400,155,50,lab8);
     
     // gives widgets their properties
     mainWin.winProps();
@@ -358,8 +456,11 @@ int main()
     mainBut3.butProps(3);
     mainBut4.butProps(4);
     mainBut5.butProps(5);
+    mainBut6.butProps(6);
     
     // shows the window
     mainWin.showWin();
+    //gloArgc = argc;
+    //gloArgv = argv;
     return(Fl::run());
 }
